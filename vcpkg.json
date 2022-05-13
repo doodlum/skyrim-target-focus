@@ -1,9 +1,9 @@
 {
     "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
-    "name": "commonlibsse-sample-plugin",
+    "name": "commonlibsse-plugin",
     "version-string": "1.0.0",
     "port-version": 0,
-    "description": "Sample SKSE plugin based on CommonLibSSE, for unified AE/SE/VR deployment.",
+    "description": "SKSE plugin based on CommonLibSSE, for unified AE/SE/VR deployment.",
     "homepage": "https://www.skyrimng.com",
     "license": "Apache-2.0",
     "features": {
@@ -29,24 +29,10 @@
                 "articuno",
                 "commonlibsse-ng-prebuilt"
             ]
-        },
-        "tests": {
-            "description": "Build tests for the SKSE plugin.",
-            "dependencies": [
-                {
-                    "name": "commonlibsse-sample-plugin",
-                    "default-features": false,
-                    "features": [
-                        "plugin"
-                    ]
-                },
-                "gtest"
-            ]
         }
     },
     "default-features": [
         "scripts-dev",
-        "plugin",
-        "tests"
+        "plugin"
     ]
 }

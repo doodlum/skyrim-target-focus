@@ -1,16 +1,34 @@
 
 #include "Hooks.h"
+#include "DOFManager.h"
 
 void MessageHandler(SKSE::MessagingInterface::Message* a_msg)
 {
 	switch (a_msg->type) {
 		case SKSE::MessagingInterface::kPostLoad:
+
+			DOFManager::GetSingleton()->g_TDM = reinterpret_cast<TDM_API::IVTDM2*>(TDM_API::RequestPluginAPI(TDM_API::InterfaceVersion::V2));
+			if (DOFManager::GetSingleton()->g_TDM) 
+				logger::info("Obtained TDM API");
+			else
+				logger::info("Unable to acquire TDM API");
+
+			
+			DOFManager::GetSingleton()->g_ENB = reinterpret_cast<ENB_API::ENBSDK1001*>(ENB_API::RequestENBAPI(ENB_API::SDKVersion::V1001));
+			if (DOFManager::GetSingleton()->g_ENB) {
+				logger::info("Obtained ENB API");
+				DOFManager::GetSingleton()->g_ENB->SetCallbackFunction([](ENBCallbackType calltype) {
+					if (calltype == ENBCallbackType::ENBCallback_EndFrame)
+						DOFManager::GetSingleton()->UpdateENBParams();
+				});
+			}
+			else
+				logger::info("Unable to acquire ENB API");
+
 			break;
-		
 
 	}
 }
-
 
 void Init()
 {
@@ -52,7 +70,9 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	while (!IsDebuggerPresent()) {};
 #endif
 
+#ifdef SKYRIMAE
 	InitializeLog();
+#endif
 
 	logger::info("Loaded plugin");
 
@@ -65,17 +85,27 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 
 extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface* a_skse, SKSE::PluginInfo* a_info)
 {
+	InitializeLog();
+
 	a_info->infoVersion = SKSE::PluginInfo::kVersion;
 	a_info->name = Plugin::NAME.data();
 	a_info->version = Plugin::VERSION.pack();
 
-	if (a_skse->IsEditor())
+	if (a_skse->IsEditor()) {
+		logger::critical("Loaded in editor, marking as incompatible"sv);
 		return false;
+	}
+
+	const auto ver = a_skse->RuntimeVersion();
+	if (ver != RUNTIME) {
+		logger::critical(FMT_STRING("Unsupported runtime version {}"sv), ver.string());
+		return false;
+	}
 
 	return true;
 }
 
-#ifdef SKYRIM
+#ifdef SKYRIMAE
 extern "C" DLLEXPORT constinit SKSE::PluginVersionData SKSEPlugin_Version = []() {
 	SKSE::PluginVersionData v;
 	v.PluginVersion(Plugin::VERSION);
