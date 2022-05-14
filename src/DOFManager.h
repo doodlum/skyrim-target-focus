@@ -26,7 +26,8 @@ public:
 	}
 
 	bool    targetFocusEnabled = false;
-	float	targetFocusDistance = 3000.0; 
+	float	targetFocusDistanceGame = 1000.0; 
+	float   targetFocusDistanceENB  = 3000.0; 
 	float   targetFocusPercent = 0.00;
 
 	bool	GetTargetLockEnabled();

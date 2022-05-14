@@ -8,15 +8,10 @@ bool DOFManager::GetTargetLockEnabled()
 
 float DOFManager::GetDistanceToTarget()
 {
-	if (GetTargetLockEnabled()) {
-		RE::TESObjectREFR* target = g_TDM->GetCurrentTarget().get().get();
-		RE::NiPoint3 cameraPosition = GetCameraPos();
-		RE::NiPoint3 targetPosition = target->GetPosition();
-		double distance = cameraPosition.GetDistance(targetPosition) / 70.0280112 / 1000;
-		return static_cast<float>(distance);
-	}
-
-	return targetFocusDistance;
+	RE::TESObjectREFR* target = g_TDM->GetCurrentTarget().get().get();
+	RE::NiPoint3 cameraPosition = GetCameraPos();
+	RE::NiPoint3 targetPosition = target->GetPosition();
+	return cameraPosition.GetDistance(targetPosition);
 }
 
 void DOFManager::UpdateENBParams()
@@ -35,7 +30,7 @@ void DOFManager::UpdateENBParams()
 	param.Type = ENB_SDK::ENBParameterType::ENBParam_FLOAT;
 	param.Size = ENBParameterTypeToSize(param.Type);
 
-	memcpy(param.Data, &targetFocusDistance, param.Size);
+	memcpy(param.Data, &targetFocusDistanceENB, param.Size);
 	g_ENB->SetParameter(NULL, "ENBDEPTHOFFIELD.FX", "Target Focus Distance", &param);
 
 	memcpy(param.Data, &targetFocusPercent, param.Size);
@@ -45,6 +40,21 @@ void DOFManager::UpdateENBParams()
 void DOFManager::UpdateDOF(float delta)
 {
 	targetFocusEnabled = GetTargetLockEnabled();
-	targetFocusDistance = GetDistanceToTarget();
+	if (GetTargetLockEnabled()) {
+		targetFocusDistanceGame = GetDistanceToTarget();
+		targetFocusDistanceENB = static_cast<float>(targetFocusDistanceGame / 70.0280112 / 1000);
+	}
+
 	targetFocusPercent = std::lerp(targetFocusPercent, targetFocusEnabled, delta);
+
+	if (auto scriptFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::Script>()) {
+		if (auto script = scriptFactory->Create()) {
+			script->SetCommand(fmt::format(FMT_STRING("configureddof farblur {}"), targetFocusPercent * 0.8));
+			script->CompileAndRun(nullptr);
+			script->SetCommand(fmt::format(FMT_STRING("configureddof farrange {}"), max(500, targetFocusDistanceGame)));
+			script->CompileAndRun(nullptr);
+		}
+	}
+
+
 }

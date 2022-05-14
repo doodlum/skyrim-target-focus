@@ -1,4 +1,5 @@
 #pragma once
+#undef ENABLE_SKYRIM_VR
 
 #pragma warning(push)
 #pragma warning(disable: 5105)
