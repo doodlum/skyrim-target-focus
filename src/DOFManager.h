@@ -30,8 +30,11 @@ public:
 	float   targetFocusDistanceENB  = 3000.0; 
 	float   targetFocusPercent = 0.00;
 
-	bool	GetTargetLockEnabled();
-	float	GetDistanceToTarget();
+	bool    GetTargetLockEnabled();
+	float   GetDistanceToLockedTarget();
+
+	bool	GetInDialogue();
+	float	GetDistanceToDialogueTarget();
 
 	void	UpdateENBParams();     
 	void    UpdateDOF(float delta);  
