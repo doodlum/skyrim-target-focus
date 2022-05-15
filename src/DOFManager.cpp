@@ -6,11 +6,29 @@ bool DOFManager::GetTargetLockEnabled()
 	return g_TDM && g_TDM->GetCurrentTarget();
 }
 
-float DOFManager::GetDistanceToTarget()
+float DOFManager::GetDistanceToLockedTarget()
 {
 	RE::TESObjectREFR* target = g_TDM->GetCurrentTarget().get().get();
 	RE::NiPoint3 cameraPosition = GetCameraPos();
 	RE::NiPoint3 targetPosition = target->GetPosition();
+	return cameraPosition.GetDistance(targetPosition);
+}
+
+bool DOFManager::GetInDialogue()
+{
+	return RE::MenuTopicManager::GetSingleton()->speaker || RE::MenuTopicManager::GetSingleton()->lastSpeaker;
+}
+
+float DOFManager::GetDistanceToDialogueTarget()
+{
+	RE::TESObjectREFR* target;
+	if (RE::MenuTopicManager::GetSingleton()->speaker) {
+		target = RE::MenuTopicManager::GetSingleton()->speaker.get().get();
+	} else {
+		target = RE::MenuTopicManager::GetSingleton()->lastSpeaker.get().get();
+	}
+	RE::NiPoint3       cameraPosition = GetCameraPos();
+	RE::NiPoint3       targetPosition = target->GetPosition();
 	return cameraPosition.GetDistance(targetPosition);
 }
 
@@ -40,16 +58,23 @@ void DOFManager::UpdateENBParams()
 void DOFManager::UpdateDOF(float delta)
 {
 	targetFocusEnabled = GetTargetLockEnabled();
-	if (GetTargetLockEnabled()) {
-		targetFocusDistanceGame = GetDistanceToTarget();
-		targetFocusDistanceENB = static_cast<float>(targetFocusDistanceGame / 70.0280112 / 1000);
+	if (targetFocusEnabled) {
+		targetFocusDistanceGame = GetDistanceToLockedTarget();
+	} else {
+		targetFocusEnabled = GetInDialogue();
+		if (targetFocusEnabled)
+			targetFocusDistanceGame = GetDistanceToDialogueTarget();
 	}
+
+	if (targetFocusEnabled)
+		targetFocusDistanceENB = static_cast<float>(targetFocusDistanceGame / 70.0280112 / 1000);
 
 	targetFocusPercent = std::lerp(targetFocusPercent, targetFocusEnabled, delta);
 
+
 	if (auto scriptFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::Script>()) {
 		if (auto script = scriptFactory->Create()) {
-			script->SetCommand(fmt::format(FMT_STRING("configureddof farblur {}"), targetFocusPercent * 0.8));
+			script->SetCommand(fmt::format(FMT_STRING("configureddof farblur {}"), targetFocusPercent));
 			script->CompileAndRun(nullptr);
 			script->SetCommand(fmt::format(FMT_STRING("configureddof farrange {}"), max(500, targetFocusDistanceGame)));
 			script->CompileAndRun(nullptr);
