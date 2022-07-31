@@ -78,6 +78,7 @@ void DOFManager::UpdateDOF(float delta)
 			script->CompileAndRun(nullptr);
 			script->SetCommand(fmt::format(FMT_STRING("configureddof farrange {}"), max(500, targetFocusDistanceGame)));
 			script->CompileAndRun(nullptr);
+			delete script;
 		}
 	}
 
