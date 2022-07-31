@@ -26,13 +26,11 @@
         "plugin": {
             "description": "Build the SKSE plugin.",
             "dependencies": [
-                "articuno",
                 "commonlibsse-ng-prebuilt"
             ]
         }
     },
     "default-features": [
-        "scripts-dev",
         "plugin"
     ]
 }
