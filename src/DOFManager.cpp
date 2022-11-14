@@ -1,5 +1,9 @@
 #include "DOFManager.h"
+
 #include "Util.h"
+
+extern TDM_API::IVTDM2*     g_TDM;
+extern ENB_API::ENBSDK1001* g_ENB;
 
 bool DOFManager::GetTargetLockEnabled()
 {
@@ -9,8 +13,8 @@ bool DOFManager::GetTargetLockEnabled()
 float DOFManager::GetDistanceToLockedTarget()
 {
 	RE::TESObjectREFR* target = g_TDM->GetCurrentTarget().get().get();
-	RE::NiPoint3 cameraPosition = GetCameraPos();
-	RE::NiPoint3 targetPosition = target->GetPosition();
+	RE::NiPoint3       cameraPosition = GetCameraPos();
+	RE::NiPoint3       targetPosition = target->GetPosition();
 	return cameraPosition.GetDistance(targetPosition);
 }
 
@@ -27,8 +31,8 @@ float DOFManager::GetDistanceToDialogueTarget()
 	} else {
 		target = RE::MenuTopicManager::GetSingleton()->lastSpeaker.get().get();
 	}
-	RE::NiPoint3       cameraPosition = GetCameraPos();
-	RE::NiPoint3       targetPosition = target->GetPosition();
+	RE::NiPoint3 cameraPosition = GetCameraPos();
+	RE::NiPoint3 targetPosition = target->GetPosition();
 	return cameraPosition.GetDistance(targetPosition);
 }
 
@@ -55,7 +59,7 @@ void DOFManager::UpdateENBParams()
 	g_ENB->SetParameter(NULL, "ENBDEPTHOFFIELD.FX", "Target Focus Percent", &param);
 }
 
-void DOFManager::UpdateDOF(float delta)
+void DOFManager::UpdateDOF(float a_delta)
 {
 	targetFocusEnabled = GetTargetLockEnabled();
 	if (targetFocusEnabled) {
@@ -69,8 +73,7 @@ void DOFManager::UpdateDOF(float delta)
 	if (targetFocusEnabled)
 		targetFocusDistanceENB = static_cast<float>(targetFocusDistanceGame / 70.0280112 / 1000);
 
-	targetFocusPercent = std::lerp(targetFocusPercent, targetFocusEnabled, delta);
-
+	targetFocusPercent = std::lerp(targetFocusPercent, targetFocusEnabled, a_delta);
 
 	if (auto scriptFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::Script>()) {
 		if (auto script = scriptFactory->Create()) {
@@ -82,5 +85,6 @@ void DOFManager::UpdateDOF(float delta)
 		}
 	}
 
-
+	static bool& DDOFCenterWeightState = (*(bool*)RELOCATION_ID(528124, 415069).address());
+	DDOFCenterWeightState = !targetFocusEnabled;
 }

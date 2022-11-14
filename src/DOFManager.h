@@ -1,18 +1,13 @@
 #pragma once
 
 #define TDM_API_COMMONLIB
-#include "API/TrueDirectionalMovementAPI.h"
+#include "TDM/TrueDirectionalMovementAPI.h"
 
-#include "API/ENBSeriesAPI.h"
-
+#include "ENB/ENBSeriesAPI.h"
 
 class DOFManager
 {
 public:
-
-	TDM_API::IVTDM2*	 g_TDM = nullptr;
-	ENB_API::ENBSDK1001* g_ENB = nullptr;
-	
 	[[nodiscard]] static DOFManager* GetSingleton()
 	{
 		static DOFManager singleton;
@@ -22,45 +17,40 @@ public:
 	static void InstallHooks()
 	{
 		Hooks::Install();
-
 	}
 
-	bool    targetFocusEnabled = false;
-	float	targetFocusDistanceGame = 1000.0; 
-	float   targetFocusDistanceENB  = 3000.0; 
-	float   targetFocusPercent = 0.00;
+	bool  targetFocusEnabled = false;
+	float targetFocusDistanceGame = 1000.0;
+	float targetFocusDistanceENB = 3000.0;
+	float targetFocusPercent = 0.00;
 
-	bool    GetTargetLockEnabled();
-	float   GetDistanceToLockedTarget();
+	bool  GetTargetLockEnabled();
+	float GetDistanceToLockedTarget();
 
-	bool	GetInDialogue();
-	float	GetDistanceToDialogueTarget();
+	bool  GetInDialogue();
+	float GetDistanceToDialogueTarget();
 
-	void	UpdateENBParams();     
-	void    UpdateDOF(float delta);  
-
+	void UpdateENBParams();
+	void UpdateDOF(float a_delta);
 
 protected:
-
 	struct Hooks
 	{
 		struct PlayerCharacter_Update
 		{
-			static void thunk(RE::PlayerCharacter* player, float delta)
+			static void thunk(RE::PlayerCharacter* a_player, float a_delta)
 			{
-				func(player, delta);
-				GetSingleton()->UpdateDOF(delta);
+				func(a_player, a_delta);
+				GetSingleton()->UpdateDOF(a_delta);
 			}
 			static inline REL::Relocation<decltype(thunk)> func;
 		};
-
 
 		static void Install()
 		{
 			stl::write_vfunc<RE::PlayerCharacter, 0xAD, PlayerCharacter_Update>();
 		}
 	};
-
 
 private:
 	constexpr DOFManager() noexcept = default;
@@ -71,5 +61,4 @@ private:
 
 	DOFManager& operator=(const DOFManager&) = delete;
 	DOFManager& operator=(DOFManager&&) = delete;
-
 };
