@@ -1,16 +1,10 @@
 option(BUILD_SKYRIM "Build for Skyrim" OFF)
-option(BUILD_SKYRIMVR "Build for Skyrim VR" OFF)
 option(BUILD_FALLOUT4 "Build for Fallout 4" OFF)
 
 if(BUILD_SKYRIM)
 	add_compile_definitions(SKYRIM)
 	set(CommonLibName "CommonLibSSE")
 	set(GameVersion "Skyrim")
-elseif(BUILD_SKYRIMVR)
-	add_compile_definitions(SKYRIMVR)
-	add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
-	set(CommonLibName "CommonLibVR")
-	set(GameVersion "Skyrim VR")
 elseif(BUILD_FALLOUT4)
 	add_compile_definitions(FALLOUT4)
 	set(CommonLibPath "CommonLibF4/CommonLibF4")
@@ -61,16 +55,6 @@ target_precompile_headers(
 	"${PROJECT_NAME}"
 	PRIVATE
 		include/PCH.h
-)
-
-target_include_directories(
-	"${PROJECT_NAME}"
-	PUBLIC
-		${CMAKE_CURRENT_SOURCE_DIR}/include
-	PRIVATE
-		${CMAKE_CURRENT_BINARY_DIR}/cmake
-		${CMAKE_CURRENT_SOURCE_DIR}/src
-		${SIMPLEINI_INCLUDE_DIRS}
 )
 
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
@@ -133,7 +117,6 @@ endif()
 
 if (BUILD_SKYRIM)
 	find_package(CommonLibSSE REQUIRED)
-	target_link_libraries(${PROJECT_NAME} PUBLIC CommonLibSSE::CommonLibSSE)
 else()
 	add_subdirectory(${CommonLibPath} ${CommonLibName} EXCLUDE_FROM_ALL)
 endif()

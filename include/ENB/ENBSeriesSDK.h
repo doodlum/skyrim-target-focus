@@ -6,7 +6,6 @@
 
 namespace ENB_SDK
 {
-
 	enum class ENBParameterType : long
 	{
 		ENBParam_NONE = 0,                //invalid
@@ -24,19 +23,19 @@ namespace ENB_SDK
 	{
 		long size = 0;
 		if (type == ENBParameterType::ENBParam_FLOAT)
-			size = 4;
+			size = sizeof(float);
 		if (type == ENBParameterType::ENBParam_INT)
-			size = 4;
+			size = sizeof(int);
 		if (type == ENBParameterType::ENBParam_HEX)
-			size = 4;
+			size = sizeof(DWORD);
 		if (type == ENBParameterType::ENBParam_BOOL)
-			size = 4;
+			size = sizeof(BOOL);
 		if (type == ENBParameterType::ENBParam_COLOR3)
-			size = 4 * 3;
+			size = sizeof(float) * 3;
 		if (type == ENBParameterType::ENBParam_COLOR4)
-			size = 4 * 4;
+			size = sizeof(float) * 4;
 		if (type == ENBParameterType::ENBParam_VECTOR3)
-			size = 4 * 3;
+			size = sizeof(float) * 3;
 		return size;
 	}
 
@@ -121,7 +120,6 @@ namespace ENB_SDK
 	typedef void(WINAPI* ENBCallbackFunction)(ENBCallbackType calltype);  //declaration of callback function
 	typedef void (*_ENBSetCallbackFunction)(ENBCallbackFunction func);
 
-
 	//Receive value of parameter
 	//Input "filename" could be NULL to access shader variables instead of configuration files.
 	//Return FALSE if failed, because function arguments are invalid, parameter not exist or hidden. Also parameters
@@ -154,5 +152,4 @@ namespace ENB_SDK
 	//Guaranteed compatibility for all Xxxx versions only, for example 1025 will work with sdk version 1000-1025,
 	//2025 will work with sdk version 2000-2025, etc. In best cases it's equal to ENBSDKVERSION
 	typedef long (*_ENBGetSDKVersion)();
-
 }

@@ -1,12 +1,14 @@
 #pragma once
 
+#include <psapi.h>
+
 #include "ENBSeriesSDK.h"
+#include "AntTweakBar.h"
 
 using namespace ENB_SDK;
 
 namespace ENB_API
 {
-
 	// Available ENBSeries SDK versions
 	enum class SDKVersion : long
 	{
@@ -14,12 +16,20 @@ namespace ENB_API
 		V1001 = 1001
 	};
 
+	enum class ENBWindowType : int
+	{
+		TW_HELP,
+		EditorBarButtons,  // GeneralWindow
+		EditorBar1,        // MainWindow
+		EditorBar2,		   // Weathers?
+		EditorBarObjects,
+		EditorBarEffects
+	};
+
 	// ENB Series' modder interface
 	class ENBAPI
 	{
-
 	public:
-
 		/// <summary>
 		/// Returns the version of the SDK used by the ENBSeries.<br/>
 		/// Guaranteed compatibility for all Xxxx versions only, for example 1025 will work with sdk version 1000-1025, 2025 will work with sdk version 2000-2025, etc.
@@ -37,20 +47,13 @@ namespace ENB_API
 			this->enbmodule = a_enbmodule;
 		}
 
-
 	protected:
-
 		HMODULE enbmodule = NULL;
-
-
 	};
-
 
 	class ENBSDK1000 : public ENBAPI
 	{
-
 	public:
-
 		/// <summary>
 		/// Returns the version of ENBSeries.
 		/// </summary>
@@ -74,14 +77,14 @@ namespace ENB_API
 		}
 
 		/// <summary>
-		/// Adds a callback function which is executed by ENBSeries at certain moments. This helps to bypass potential bugs and may increase performance. 
-		/// </summary> 
+		/// Adds a callback function which is executed by ENBSeries at certain moments. This helps to bypass potential bugs and may increase performance.
+		/// </summary>
 		void SetCallbackFunction(ENBCallbackFunction a_func)
 		{
 			reinterpret_cast<_ENBSetCallbackFunction>(GetProcAddress(enbmodule, "ENBSetCallbackFunction"))(a_func);
 		}
 
-		/// <summary> 
+		/// <summary>
 		/// Get the value of a parameter.<br/>
 		/// Parameters may spawn or be deleted when the user is modifying shaders, so it's highly recommended to call this inside a callback function.</summary>
 		/// <param name="a_filename"> Use NULL to access shader variables instead of configuration files.</param>
@@ -102,7 +105,7 @@ namespace ENB_API
 		/// so it's highly recommended to warn users about that.
 		/// </summary>
 		/// <param name="a_filename"> Use NULL to access shader variables instead of configuration files.</param>
-		/// <returns> 
+		/// <returns>
 		/// FALSE if failed, because function arguments are invalid, parameter not exist, hidden or read only.<br/>
 		/// FALSE if called outside of callback function to protect against graphical artifacts and crashes.
 		/// </returns>
@@ -110,19 +113,15 @@ namespace ENB_API
 		{
 			return reinterpret_cast<_ENBSetParameter>(GetProcAddress(enbmodule, "ENBSetParameter"))(a_filename, a_category, a_keyname, a_inparam);
 		}
-		bool SetParameter(char* a_filename, const char* a_category, const char* a_keyname, ENBParameter* a_inparam)
+		bool SetParameter(const char* a_filename, const char* a_category, const char* a_keyname, ENBParameter* a_inparam)
 		{
 			return reinterpret_cast<_ENBSetParameterA>(GetProcAddress(enbmodule, "ENBSetParameter"))(a_filename, a_category, a_keyname, a_inparam);
 		}
-
-
 	};
 
 	class ENBSDK1001 : public ENBSDK1000
 	{
 	public:
-
-
 		/// <summary>
 		/// Receive various objects for advanced programming.
 		/// </summary>
@@ -144,8 +143,116 @@ namespace ENB_API
 		{
 			return reinterpret_cast<_ENBStateType>(GetProcAddress(enbmodule, "ENBGetState"))(state);
 		}
+	};
 
+	class ENBSDKALT1001 : public ENBSDK1001
+	{
+	public:
+		typedef TwBar* (*_TwNewBar)(const char* barName);
+		typedef int (*_TwDeleteBar)(TwBar* bar);
+		typedef const char* (*_TwGetBarName)(const TwBar* bar);
+		typedef TwBar* (*_TwGetBarByIndex)(int barIndex);
+		typedef TwBar* (*_TwGetBarByName)(const char* barName);
+		typedef int (*_TwRefreshBar)(TwBar* bar);
+		typedef const char* (*_TwGetBarName)(const TwBar* bar);
 
+		TwBar* TwNewBar(const char* barName)
+		{
+			return reinterpret_cast<_TwNewBar>(GetProcAddress(enbmodule, "TwNewBar"))(barName);
+		}
+
+		int TwDeleteBar(TwBar* bar)
+		{
+			return reinterpret_cast<_TwDeleteBar>(GetProcAddress(enbmodule, "TwDeleteBar"))(bar);
+		}
+
+		TwBar* TwGetBarByIndex(int barIndex)
+		{
+			return reinterpret_cast<_TwGetBarByIndex>(GetProcAddress(enbmodule, "TwGetBarByIndex"))(barIndex);
+		}
+
+		TwBar* TwGetBarByEnum(ENBWindowType barIndex)
+		{
+			return reinterpret_cast<_TwGetBarByIndex>(GetProcAddress(enbmodule, "TwGetBarByIndex"))(static_cast<int>(barIndex));
+		}
+
+		TwBar* TwGetBarByName(const char* barName)
+		{
+			return reinterpret_cast<_TwGetBarByName>(GetProcAddress(enbmodule, "TwGetBarByName"))(barName);
+		}
+
+		int TwRefreshBar(TwBar* bar)
+		{
+			return reinterpret_cast<_TwRefreshBar>(GetProcAddress(enbmodule, "TwRefreshBar"))(bar);
+		}
+
+		typedef int (*_TwAddVarRW)(TwBar* bar, const char* name, TwType type, void* var, const char* def);
+		typedef int (*_TwAddVarRO)(TwBar* bar, const char* name, TwType type, const void* var, const char* def);
+		typedef int (*_TwAddVarCB)(TwBar* bar, const char* name, TwType type, TwSetVarCallback setCallback, TwGetVarCallback getCallback, void* clientData, const char* def);
+		typedef int (*_TwAddButton)(TwBar* bar, const char* name, TwButtonCallback callback, void* clientData, const char* def);
+		typedef int (*_TwAddSeparator)(TwBar* bar, const char* name, const char* def);
+		typedef int (*_TwRemoveVar)(TwBar* bar, const char* name);
+		typedef int (*_TwRemoveAllVars)(TwBar* bar);
+
+		int TwAddVarRW(TwBar* bar, const char* name, TwType type, void* var, const char* def)
+		{
+			return reinterpret_cast<_TwAddVarRW>(GetProcAddress(enbmodule, "TwAddVarRW"))(bar, name, type, var, def);
+		}
+
+		int TwAddVarRO(TwBar* bar, const char* name, TwType type, const void* var, const char* def)
+		{
+			return reinterpret_cast<_TwAddVarRO>(GetProcAddress(enbmodule, "TwAddVarRO"))(bar, name, type, var, def);
+		}
+
+		int TwAddVarCB(TwBar* bar, const char* name, TwType type, TwSetVarCallback setCallback, TwGetVarCallback getCallback, void* clientData, const char* def)
+		{
+			return reinterpret_cast<_TwAddVarCB>(GetProcAddress(enbmodule, "TwAddVarCB"))(bar, name, type, setCallback, getCallback, clientData, def);
+		}
+
+		int TwAddButton(TwBar* bar, const char* name, TwButtonCallback callback, void* clientData, const char* def)
+		{
+			return reinterpret_cast<_TwAddButton>(GetProcAddress(enbmodule, "TwAddButton"))(bar, name, callback, clientData, def);
+		}
+
+		int TwAddSeparator(TwBar* bar, const char* name, const char* def)
+		{
+			return reinterpret_cast<_TwAddSeparator>(GetProcAddress(enbmodule, "TwAddVarRO"))(bar, name, def);
+		}
+
+		int TwRemoveVar(TwBar* bar, const char* name)
+		{
+			return reinterpret_cast<_TwRemoveVar>(GetProcAddress(enbmodule, "TwRemoveVar"))(bar, name);
+		}
+
+		int TwRemoveAllVars(TwBar* bar)
+		{
+			return reinterpret_cast<_TwRemoveAllVars>(GetProcAddress(enbmodule, "TwRemoveAllVars"))(bar);
+		}
+
+		typedef int (*_TwGetParam)(TwBar* bar, const char* varName, const char* paramName, TwParamValueType paramValueType, unsigned int outValueMaxCount, void* outValues);
+		typedef int (*_TwSetParam)(TwBar* bar, const char* varName, const char* paramName, TwParamValueType paramValueType, unsigned int inValueCount, const void* inValues);
+
+		int TwGetParam(TwBar* bar, const char* varName, const char* paramName, TwParamValueType paramValueType, unsigned int outValueMaxCount, void* outValues)
+		{
+			return reinterpret_cast<_TwGetParam>(GetProcAddress(enbmodule, "TwGetParam"))(bar, varName, paramName, paramValueType, outValueMaxCount, outValues);
+		}
+
+		int TwSetParam(TwBar* bar, const char* varName, const char* paramName, TwParamValueType paramValueType, unsigned int inValueCount, const void* inValues)
+		{
+			return reinterpret_cast<_TwSetParam>(GetProcAddress(enbmodule, "TwSetParam"))(bar, varName, paramName, paramValueType, inValueCount, inValues);
+		}
+
+		const char* TwGetBarName(const TwBar* bar)
+		{
+			return reinterpret_cast<_TwGetBarName>(GetProcAddress(enbmodule, "TwGetBarName"))(bar);
+		}
+
+		typedef int (*_TwDefine)(const char* def);
+
+		int TwDefine(const char* def)
+		{
+			return reinterpret_cast<_TwDefine>(GetProcAddress(enbmodule, "TwDefine"))(def);
+		}
 	};
 
 	/// <summary>
