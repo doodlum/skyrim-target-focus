@@ -31,6 +31,13 @@ float DOFManager::GetDistanceToDialogueTarget()
 	} else {
 		target = RE::MenuTopicManager::GetSingleton()->lastSpeaker.get().get();
 	}
+	/* In Alternate Conversation Camera with the speaker swap setting enabled,
+	 * the camera switches to focus on the player after the NPC stops speaking
+	 * and waits for the player's response. At this time, the PlayerCamera
+	 * cameraTarget is the NPC being conversed with instead of the player. */
+	if (   RE::PlayerCamera::GetSingleton()->cameraTarget
+	    && RE::PlayerCamera::GetSingleton()->cameraTarget.get().get() == target)
+		target = RE::PlayerCharacter::GetSingleton();
 	RE::NiPoint3 cameraPosition = GetCameraPos();
 	RE::NiPoint3 targetPosition = target->GetPosition();
 	return cameraPosition.GetDistance(targetPosition);
@@ -73,7 +80,7 @@ void DOFManager::UpdateDOF(float a_delta)
 	if (targetFocusEnabled)
 		targetFocusDistanceENB = static_cast<float>(targetFocusDistanceGame / 70.0280112 / 1000);
 
-	targetFocusPercent = std::lerp(targetFocusPercent, targetFocusEnabled, a_delta);
+	targetFocusPercent = (float)std::lerp(targetFocusPercent, targetFocusEnabled, a_delta);
 
 	if (auto scriptFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::Script>()) {
 		if (auto script = scriptFactory->Create()) {
