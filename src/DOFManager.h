@@ -48,7 +48,7 @@ protected:
 
 		static void Install()
 		{
-			stl::write_vfunc<RE::PlayerCharacter, 0xAD, PlayerCharacter_Update>();
+			stl::write_vfunc<0xAD, PlayerCharacter_Update>(RE::VTABLE_PlayerCharacter[0]);
 		}
 	};
 

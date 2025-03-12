@@ -2,13 +2,12 @@
 // Thanks Ershin!
 RE::NiPoint3 GetCameraPos()
 {
-	auto         player = RE::PlayerCharacter::GetSingleton();
-	auto         playerCamera = RE::PlayerCamera::GetSingleton();
+	static auto         player = RE::PlayerCharacter::GetSingleton();
+	static auto playerCamera = RE::PlayerCamera::GetSingleton();
 	RE::NiPoint3 ret;
-
-	if (playerCamera->currentState == playerCamera->cameraStates[RE::CameraStates::kFirstPerson] ||
-		playerCamera->currentState == playerCamera->cameraStates[RE::CameraStates::kThirdPerson] ||
-		playerCamera->currentState == playerCamera->cameraStates[RE::CameraStates::kMount]) {
+	if (playerCamera->currentState == playerCamera->GetRuntimeData().cameraStates[RE::CameraStates::kFirstPerson] ||
+		playerCamera->currentState == playerCamera->GetRuntimeData().cameraStates[RE::CameraStates::kThirdPerson] ||
+		playerCamera->currentState == playerCamera->GetRuntimeData().cameraStates[RE::CameraStates::kMount]) {
 		RE::NiNode* root = playerCamera->cameraRoot.get();
 		if (root) {
 			ret.x = root->world.translate.x;

@@ -73,7 +73,7 @@ void DOFManager::UpdateDOF(float a_delta)
 	if (targetFocusEnabled)
 		targetFocusDistanceENB = static_cast<float>(targetFocusDistanceGame / 70.0280112 / 1000);
 
-	targetFocusPercent = std::lerp(targetFocusPercent, targetFocusEnabled, a_delta);
+	targetFocusPercent = std::lerp(targetFocusPercent, (float)targetFocusEnabled, a_delta);
 
 	if (auto scriptFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::Script>()) {
 		if (auto script = scriptFactory->Create()) {
