@@ -5,16 +5,36 @@
   "port-version": 0,
   "description": "SKSE plugin based on CommonLibSSE, for unified AE/SE/VR deployment.",
   "homepage": "https://www.skyrimng.com",
-  "license": "Apache-2.0",
+  "license": "GPL-3.0-or-later",
   "features": {
     "plugin": {
       "description": "Build the SKSE plugin.",
       "dependencies": [
-        "commonlibsse-ng",
         "directxtk"
       ]
     }
   },
-  "default-features": [ "plugin" ],
-  "builtin-baseline": "53bef8994c541b6561884a8395ea35715ece75db"
+  "default-features": [
+    "plugin"
+  ],
+  "builtin-baseline": "ee12231b20c95013c6638d845d04c91559a1d1ff",
+  "dependencies": [
+    {
+      "name": "directxmath",
+      "version>=": "2025-04-03"
+    },
+    {
+      "name": "directxtk",
+      "version>=": "2025-10-27"
+    },
+    {
+      "name": "fmt",
+      "version>=": "12.1.0"
+    },
+    {
+      "name": "spdlog",
+      "version>=": "1.16.0"
+    },
+    "xbyak"
+  ]
 }

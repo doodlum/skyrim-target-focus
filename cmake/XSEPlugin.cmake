@@ -1,3 +1,10 @@
+set(CommonLibPath "${CMAKE_SOURCE_DIR}/extern/CommonLibSSE-NG" CACHE PATH "Path to CommonLibSSE-NG")
+set(COMMONLIB_PREBUILT ON CACHE BOOL "Use prebuilt CommonLibSSE-NG" FORCE)
+set(COMMONLIB_PREBUILT_MULTICONFIG ON CACHE BOOL "Use prebuilt CommonLibSSE-NG with multi-config generators" FORCE)
+set(ENABLE_SKYRIM_SE ON CACHE BOOL "Enable Skyrim SE support" FORCE)
+set(ENABLE_SKYRIM_AE ON CACHE BOOL "Enable Skyrim AE support" FORCE)
+set(ENABLE_SKYRIM_VR ON CACHE BOOL "Enable Skyrim VR support" FORCE)
+
 add_library("${PROJECT_NAME}" SHARED)
 
 target_compile_features(
@@ -95,7 +102,7 @@ if(CMAKE_GENERATOR MATCHES "Visual Studio")
 endif()
 
 find_package(DirectXTK CONFIG REQUIRED)
-find_package(CommonLibSSE CONFIG REQUIRED)
+add_subdirectory(${CommonLibPath} CommonLibSSE EXCLUDE_FROM_ALL)
 find_package(spdlog CONFIG REQUIRED)
 
 target_include_directories(
